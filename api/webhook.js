@@ -205,16 +205,16 @@ function checkAddress(addr) {
   // ── Format B: compound + villa / unit ─────────────────────────
   const hasCompound = /compound|كمبوند|حي\s+\S|heights?|gardens?|village|مدينة|القطامية|الرحاب|مستقبل|سيتي|mayfair|زايد|سراي|الياسمين|النرجس|البنفسج|الزهور|الفل|القرنفل|بالم|بيراميدز|ميفير|ديار|سيليا|كناريا|دريم لاند|dreamland|التجمع|بيفرلي|beverly|وادي|الندى|الأندلس|ميدان|جرين|green|ليك|lake|ريفيرا|riviera|سنتر|center|بارك|park/i
     .test(combined);
-  const hasVillaOrUnit = /\bvilla\b|فيلا|ڤيلا|\bunit\b|وحدة|\d+/i.test(combined);
+  const hasVillaOrUnit = /\bvilla\b|فيلا|ڤيلا|\bunit\b|وحدة|[0-9٠-٩]+/i.test(combined);
 
   // فيلا + رقم بدون كلمة كمبوند صريحة → Format B أيضاً
-  const hasVillaWithNumber = /(?:فيلا|ڤيلا|\bvilla\b).*\d|\d.*(?:فيلا|ڤيلا|\bvilla\b)/i.test(combined);
+  const hasVillaWithNumber = /(?:فيلا|ڤيلا|\bvilla\b).*[0-9٠-٩]|[0-9٠-٩].*(?:فيلا|ڤيلا|\bvilla\b)/i.test(combined);
 
   if ((hasCompound && hasVillaOrUnit) || hasVillaWithNumber) return ok('Format B');
 
   // ── Format A ──────────────────────────────────────────────────
   // Building number: any Arabic/Western digit  OR  the word بيت
-  const hasBuilding = /\d+/.test(combined) || /بيت/.test(combined) || /برج/.test(combined);
+  const hasBuilding = /[0-9٠-٩]+/.test(combined) || /بيت/.test(combined) || /برج/.test(combined);
   if (!hasBuilding) return fail('missing building number');
 
   // Street
