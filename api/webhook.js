@@ -29,6 +29,7 @@ const TAG = {
   NEW:          'New ✨',
   LOYAL:        'Loyal 👑',
   BAD_ADDRESS:  'Address 🔺',
+  CLEAR:        'Clear 👌🏻',
 };
 
 // ─────────────────────────────────────────────────────────────────────
@@ -167,6 +168,14 @@ async function screenOrder(order) {
   }
 
   // ── APPLY TAGS ───────────────────────────────────────────────────
+  // If no alert tags were added → order is clear
+  const alertTags = [TAG.AVG_RATE, TAG.CALL_CONFIRM, TAG.LOW_RATE, TAG.DEPOSIT, TAG.BAD_ADDRESS];
+  const hasAlert  = toAdd.some(t => alertTags.includes(t)) ||
+                    alertTags.some(t => existingTags.has(t));
+  if (!hasAlert && !existingTags.has(TAG.CLEAR)) {
+    push(TAG.CLEAR);
+  }
+
   if (toAdd.length > 0) {
     await applyTags(orderGid, toAdd);
   }
