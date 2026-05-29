@@ -203,11 +203,14 @@ function checkAddress(addr) {
   const combined = `${address1} ${address2}`;
 
   // ── Format B: compound + villa / unit ─────────────────────────
-  const hasCompound = /compound|كمبوند|حي\s+\S|heights?|gardens?|village|مدينة|القطامية|الرحاب|مستقبل|سيتي|mayfair|زايد|سراي/i
+  const hasCompound = /compound|كمبوند|حي\s+\S|heights?|gardens?|village|مدينة|القطامية|الرحاب|مستقبل|سيتي|mayfair|زايد|سراي|الياسمين|النرجس|البنفسج|الزهور|الفل|القرنفل|بالم|بيراميدز|ميفير|ديار|سيليا|كناريا|دريم لاند|dreamland|التجمع|بيفرلي|beverly|وادي|الندى|الأندلس|ميدان|جرين|green|ليك|lake|ريفيرا|riviera|سنتر|center|بارك|park/i
     .test(combined);
-  const hasVillaOrUnit = /\bvilla\b|فيلا|\bunit\b|وحدة|\d+/i.test(combined);
+  const hasVillaOrUnit = /\bvilla\b|فيلا|ڤيلا|\bunit\b|وحدة|\d+/i.test(combined);
 
-  if (hasCompound && hasVillaOrUnit) return ok('Format B');
+  // فيلا + رقم بدون كلمة كمبوند صريحة → Format B أيضاً
+  const hasVillaWithNumber = /(?:فيلا|ڤيلا|\bvilla\b).*\d|\d.*(?:فيلا|ڤيلا|\bvilla\b)/i.test(combined);
+
+  if ((hasCompound && hasVillaOrUnit) || hasVillaWithNumber) return ok('Format B');
 
   // ── Format A ──────────────────────────────────────────────────
   // Building number: any Arabic/Western digit  OR  the word بيت
@@ -215,7 +218,7 @@ function checkAddress(addr) {
   if (!hasBuilding) return fail('missing building number');
 
   // Street
-  const hasStreet = /شارع|street\b|st\b|طريق|road|كورنيش/i.test(combined);
+  const hasStreet = /شارع|street\b|st\b|طريق|road|كورنيش|مجاورة|حي\s|sector|block/i.test(combined);
   if (!hasStreet) return fail('missing street');
 
   // Zone: required only when province is Cairo/Giza AND city is generic (just "Cairo" or "Giza")
