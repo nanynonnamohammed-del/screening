@@ -218,9 +218,11 @@ function checkAddress(addr) {
   const hasStreet = /شارع|street\b|st\b|طريق|road|كورنيش/i.test(combined);
   if (!hasStreet) return fail('missing street');
 
-  // Zone: required only for Cairo or Giza
+  // Zone: required only when province is Cairo/Giza AND city is generic (just "Cairo" or "Giza")
+  // If city is a specific town/district (e.g. Badrashin, Sheikh Zayed, New Cairo), zone not needed
   const cairoOrGiza = /cairo|القاهر|giza|الجيز/i.test(province);
-  if (cairoOrGiza) {
+  const genericCity = /^(cairo|القاهرة|القاهره|giza|الجيزة|الجيزه|جيزة|جيزه)$/i.test(city.trim());
+  if (cairoOrGiza && genericCity) {
     const hasZone =
       address2.trim().length > 0 ||
       /حي\s|منطقة|ناحية|district|zone|الدقي|المهندسين|مدينة نصر|عين شمس|هليوبوليس|مصر الجديدة|الزيتون|عباسية|فيصل|إمبابة|شبرا|المعادي|المقطم|التجمع|الشروق|بدر|العبور|الرحاب|مستقبل|القاهرة الجديدة|15 مايو|شرق|غرب|وسط|بحري|قبلي/i
