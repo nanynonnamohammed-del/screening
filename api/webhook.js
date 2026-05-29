@@ -203,7 +203,7 @@ function checkAddress(addr) {
   const combined = `${address1} ${address2}`;
 
   // ── Format B: compound + villa / unit ─────────────────────────
-  const hasCompound = /compound|كمبوند|حي\s+\S|heights?|gardens?|village|مدينة|القطامية|الرحاب|مستقبل|سيتي|mayfair|زايد|سراي|الياسمين|النرجس|البنفسج|الزهور|الفل|القرنفل|بالم|بيراميدز|ميفير|ديار|سيليا|كناريا|دريم لاند|dreamland|التجمع|بيفرلي|beverly|وادي|الندى|الأندلس|ميدان|جرين|green|ليك|lake|ريفيرا|riviera|سنتر|center|بارك|park/i
+  const hasCompound = /compound|كمبوند|حي\s+\S|heights?|gardens?|village|مدينة|القطامية|الرحاب|مستقبل|سيتي|mayfair|زايد|سراي|الياسمين|النرجس|البنفسج|الزهور|الفل|القرنفل|بالم|بيراميدز|ميفير|ديار|سيليا|كناريا|دريم لاند|dreamland|التجمع|بيفرلي|beverly|وادي|الندى|الأندلس|ميدان|جرين|green|ليك|lake|ريفيرا|riviera|سنتر|center|بارك|park|مساكن/i
     .test(combined);
   const hasVillaOrUnit = /\bvilla\b|فيلا|ڤيلا|\bunit\b|وحدة|[0-9٠-٩]+/i.test(combined);
 
