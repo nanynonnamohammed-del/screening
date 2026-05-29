@@ -214,7 +214,7 @@ function checkAddress(addr) {
 
   // ── Format A ──────────────────────────────────────────────────
   // Building number: any Arabic/Western digit  OR  the word بيت
-  const hasBuilding = /[0-9٠-٩]+/.test(combined) || /بيت/.test(combined) || /برج/.test(combined);
+  const hasBuilding = /[0-9٠-٩]+/.test(combined) || /بيت|برج|عمارة|عمارات|عماره/.test(combined);
   if (!hasBuilding) return fail('missing building number');
 
   // Street
