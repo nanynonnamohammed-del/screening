@@ -1,0 +1,13 @@
+{
+  "name": "order-screening-webhook",
+  "version": "1.0.0",
+  "description": "Auto-tags Shopify orders on creation — Bosta rate + order history + address check",
+  "main": "api/webhook.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node api/webhook.js"
+  },
+  "license": "MIT"
+}
