@@ -144,8 +144,8 @@ async function screenOrder(order) {
         push(TAG.DEPOSIT);     // push() is safe — will not duplicate if Check 1 already added it
       }
 
-      // More than 2 previous orders AND all of them were paid → Loyal
-      if (prevOrders.length > 2 && prevOrders.every(o => o.displayFinancialStatus === 'PAID')) {
+      // 2 or more previous orders AND all of them were paid → Loyal
+      if (prevOrders.length >= 2 && prevOrders.every(o => o.displayFinancialStatus === 'PAID')) {
         console.log('[check2]  loyal customer detected');
         push(TAG.LOYAL);
       }
