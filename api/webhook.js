@@ -272,14 +272,27 @@ async function getBostaAcceptanceRate(phone) {
 
     const data = await res.json();
 
+    // Log full response so we can see the actual field names
+    console.log('[bosta] raw response:', JSON.stringify(data));
+
     // ▼ ADJUST this field name to match the actual Bosta response
     const rate = data.acceptanceRateLabel
               ?? data.acceptance_rate_label
               ?? data.acceptanceRate
               ?? data.acceptance_rate
+              ?? data.rate
+              ?? data.label
+              ?? data.customerAcceptanceRate
+              ?? data.customer_acceptance_rate
               ?? null;
 
-    return rate;   // expected: "High" | "Average" | "Low"  (or null)
+    // Normalize to title-case in case Bosta returns lowercase
+    if (typeof rate === 'string') {
+      const normalized = rate.charAt(0).toUpperCase() + rate.slice(1).toLowerCase();
+      return normalized; // "High" | "Average" | "Low"
+    }
+
+    return null;
 
   } catch (err) {
     console.error('[bosta] Request failed:', err.message);
