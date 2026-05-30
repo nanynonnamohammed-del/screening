@@ -262,12 +262,16 @@ async function getBostaAcceptanceRate(phone) {
     const phoneWithPlus    = normalizedPhone;                        // +201xxxxxxxxx
     const phoneWithoutPlus = normalizedPhone.replace('+', '');       // 201xxxxxxxxx
 
-    // Try multiple endpoint patterns
+    // Try multiple endpoint + version patterns
     const endpoints = [
-      `${BOSTA_API_BASE}/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
-      `${BOSTA_API_BASE}/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithoutPlus)}`,
-      `${BOSTA_API_BASE}/receivers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
-      `${BOSTA_API_BASE}/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
+      // v2 variants
+      `https://app.bosta.co/api/v2/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
+      `https://app.bosta.co/api/v2/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithoutPlus)}`,
+      `https://app.bosta.co/api/v2/receivers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
+      // v0 with phoneNumber param name
+      `${BOSTA_API_BASE}/businesses/customers/acceptance-rate?phoneNumber=${encodeURIComponent(phoneWithoutPlus)}`,
+      // Different base host
+      `https://api.bosta.co/v2/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
     ];
 
     let data = null;
