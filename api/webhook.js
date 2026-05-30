@@ -258,34 +258,42 @@ async function getBostaAcceptanceRate(phone) {
     } else if (!normalizedPhone.startsWith('+')) {
       normalizedPhone = '+' + normalizedPhone;
     }
-    console.log(`[bosta] calling API with phone=${normalizedPhone}`);
+    // Try both with and without '+' sign
+    const phoneWithPlus    = normalizedPhone;                        // +201xxxxxxxxx
+    const phoneWithoutPlus = normalizedPhone.replace('+', '');       // 201xxxxxxxxx
 
-    // ▼ ADJUST this URL if Bosta gives you a different endpoint
-    const url = `${BOSTA_API_BASE}/businesses/customers/acceptance-rate` +
-                `?phone=${encodeURIComponent(normalizedPhone)}`;
+    // Try multiple endpoint patterns
+    const endpoints = [
+      `${BOSTA_API_BASE}/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
+      `${BOSTA_API_BASE}/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithoutPlus)}`,
+      `${BOSTA_API_BASE}/receivers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
+      `${BOSTA_API_BASE}/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
+    ];
 
-    const res = await fetchWithTimeout(url, {
-      method:  'GET',
-      headers: {
-        Authorization:  `Bearer ${BOSTA_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    }, 8000); // 8-second timeout
-
-    if (!res.ok) {
-      console.warn(`[bosta] API returned ${res.status} for phone ${phone}`);
-      // Try to log body even on error so we can debug
-      try {
-        const errBody = await res.json();
-        console.log('[bosta] error body:', JSON.stringify(errBody));
-      } catch {}
-      return null;
+    let data = null;
+    for (const url of endpoints) {
+      console.log(`[bosta] trying: ${url}`);
+      const r = await fetchWithTimeout(url, {
+        method:  'GET',
+        headers: {
+          Authorization:  `Bearer ${BOSTA_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }, 8000);
+      console.log(`[bosta] → status ${r.status}`);
+      if (r.ok) {
+        data = await r.json();
+        console.log('[bosta] raw response:', JSON.stringify(data));
+        break;
+      } else {
+        try {
+          const errBody = await r.json();
+          console.log(`[bosta] error body:`, JSON.stringify(errBody));
+        } catch {}
+      }
     }
 
-    const data = await res.json();
-
-    // Log full response so we can see the actual field names
-    console.log('[bosta] raw response:', JSON.stringify(data));
+    if (!data) return null;
 
     // ▼ ADJUST this field name to match the actual Bosta response
     const rate = data.acceptanceRateLabel
