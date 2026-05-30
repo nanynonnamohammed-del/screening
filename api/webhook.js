@@ -251,9 +251,18 @@ async function getBostaAcceptanceRate(phone) {
   }
 
   try {
+    // Normalize Egyptian phone to international format (e.g. 01xxxxxxxxx → +201xxxxxxxxx)
+    let normalizedPhone = phone.replace(/\s+/g, '');
+    if (normalizedPhone.startsWith('0') && !normalizedPhone.startsWith('00')) {
+      normalizedPhone = '+2' + normalizedPhone; // 01x → +201x
+    } else if (!normalizedPhone.startsWith('+')) {
+      normalizedPhone = '+' + normalizedPhone;
+    }
+    console.log(`[bosta] calling API with phone=${normalizedPhone}`);
+
     // ▼ ADJUST this URL if Bosta gives you a different endpoint
     const url = `${BOSTA_API_BASE}/businesses/customers/acceptance-rate` +
-                `?phone=${encodeURIComponent(phone)}`;
+                `?phone=${encodeURIComponent(normalizedPhone)}`;
 
     const res = await fetchWithTimeout(url, {
       method:  'GET',
@@ -263,10 +272,13 @@ async function getBostaAcceptanceRate(phone) {
       },
     }, 8000); // 8-second timeout
 
-    if (res.status === 404) return null;  // customer not found in Bosta → skip
-
     if (!res.ok) {
-      console.error(`[bosta] API returned ${res.status} for phone ${phone}`);
+      console.warn(`[bosta] API returned ${res.status} for phone ${phone}`);
+      // Try to log body even on error so we can debug
+      try {
+        const errBody = await res.json();
+        console.log('[bosta] error body:', JSON.stringify(errBody));
+      } catch {}
       return null;
     }
 
