@@ -17,7 +17,7 @@ const SHOPIFY_STORE          = process.env.SHOPIFY_STORE;           // e.g. myst
 const SHOPIFY_ACCESS_TOKEN   = process.env.SHOPIFY_ACCESS_TOKEN;    // shpat_xxxx
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET;  // from Shopify notifications page
 const BOSTA_API_KEY          = process.env.BOSTA_API_KEY;
-const BOSTA_API_BASE         = process.env.BOSTA_API_BASE || 'https://app.bosta.co/api/v0';
+const BOSTA_API_BASE         = process.env.BOSTA_API_BASE || 'https://app.bosta.co';
 const SHOPIFY_API_VERSION    = '2025-01';
 
 // Tag strings — exact text including emoji
@@ -248,9 +248,8 @@ const ok   = (reason) => ({ ok: true,  reason });
 const fail = (reason) => ({ ok: false, reason });
 
 // ─────────────────────────────────────────────────────────────────────
-//  5. BOSTA API
-//     ⚠️  Confirm exact endpoint + response field with Bosta support.
-//         Adjust the two marked lines below once you have the docs.
+//  5. BOSTA API  — GET /api/v2/consignee/ranking?phone=+201xxxxxxxxx
+//     Response: { data: { consigneRanking: { deliverySuccessRate, consecutiveReturnedDeliveriesCount } } }
 // ─────────────────────────────────────────────────────────────────────
 async function getBostaAcceptanceRate(phone) {
   if (!BOSTA_API_KEY) {
@@ -259,76 +258,55 @@ async function getBostaAcceptanceRate(phone) {
   }
 
   try {
-    // Normalize Egyptian phone to international format (e.g. 01xxxxxxxxx → +201xxxxxxxxx)
+    // Normalize to +201xxxxxxxxx
     let normalizedPhone = phone.replace(/\s+/g, '');
     if (normalizedPhone.startsWith('0') && !normalizedPhone.startsWith('00')) {
-      normalizedPhone = '+2' + normalizedPhone; // 01x → +201x
+      normalizedPhone = '+2' + normalizedPhone;
     } else if (!normalizedPhone.startsWith('+')) {
       normalizedPhone = '+' + normalizedPhone;
     }
-    // Try both with and without '+' sign
-    const phoneWithPlus    = normalizedPhone;                        // +201xxxxxxxxx
-    const phoneWithoutPlus = normalizedPhone.replace('+', '');       // 201xxxxxxxxx
 
-    // Try multiple endpoint + version patterns
-    const endpoints = [
-      // v2 variants
-      `https://app.bosta.co/api/v2/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
-      `https://app.bosta.co/api/v2/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithoutPlus)}`,
-      `https://app.bosta.co/api/v2/receivers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
-      // v0 with phoneNumber param name
-      `${BOSTA_API_BASE}/businesses/customers/acceptance-rate?phoneNumber=${encodeURIComponent(phoneWithoutPlus)}`,
-      // Different base host
-      `https://api.bosta.co/v2/businesses/customers/acceptance-rate?phone=${encodeURIComponent(phoneWithPlus)}`,
-    ];
+    const url = `${BOSTA_API_BASE}/api/v2/consignee/ranking` +
+                `?phone=${encodeURIComponent(normalizedPhone)}`;
 
-    let data = null;
-    for (const url of endpoints) {
-      console.log(`[bosta] trying: ${url}`);
-      const r = await fetchWithTimeout(url, {
-        method:  'GET',
-        headers: {
-          Authorization:  `Bearer ${BOSTA_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }, 8000);
-      console.log(`[bosta] → status ${r.status}`);
-      if (r.ok) {
-        data = await r.json();
-        console.log('[bosta] raw response:', JSON.stringify(data));
-        break;
-      } else {
-        try {
-          const errBody = await r.json();
-          console.log(`[bosta] error body:`, JSON.stringify(errBody));
-        } catch {}
-      }
+    console.log(`[bosta] calling ${url}`);
+
+    const res = await fetchWithTimeout(url, {
+      method:  'GET',
+      headers: {
+        Authorization:  `Bearer ${BOSTA_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    }, 8000);
+
+    if (!res.ok) {
+      console.warn(`[bosta] API returned ${res.status} for phone ${normalizedPhone}`);
+      return null;
     }
 
-    if (!data) return null;
+    const data    = await res.json();
+    const ranking = data?.data?.consigneRanking;
 
-    // ▼ ADJUST this field name to match the actual Bosta response
-    const rate = data.acceptanceRateLabel
-              ?? data.acceptance_rate_label
-              ?? data.acceptanceRate
-              ?? data.acceptance_rate
-              ?? data.rate
-              ?? data.label
-              ?? data.customerAcceptanceRate
-              ?? data.customer_acceptance_rate
-              ?? null;
-
-    // Normalize to title-case in case Bosta returns lowercase
-    if (typeof rate === 'string') {
-      const normalized = rate.charAt(0).toUpperCase() + rate.slice(1).toLowerCase();
-      return normalized; // "High" | "Average" | "Low"
+    if (!ranking) {
+      console.log('[bosta] no ranking data — customer not in Bosta');
+      return null;
     }
 
-    return null;
+    const successRate        = ranking.deliverySuccessRate                ?? null;
+    const consecutiveReturns = ranking.consecutiveReturnedDeliveriesCount ?? 0;
+
+    console.log(`[bosta] successRate=${successRate}  consecutiveReturns=${consecutiveReturns}`);
+
+    if (successRate === null) return null;
+
+    // Thresholds: Low < 40% OR 2+ consecutive returns | Average 40-69% | High ≥ 70%
+    if (successRate < 40 || consecutiveReturns >= 2) return 'Low';
+    if (successRate < 70)                            return 'Average';
+    return 'High';
 
   } catch (err) {
     console.error('[bosta] Request failed:', err.message);
-    return null;   // network error → skip gracefully
+    return null;
   }
 }
 
