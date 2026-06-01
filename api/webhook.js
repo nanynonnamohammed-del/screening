@@ -202,6 +202,9 @@ function checkAddress(addr) {
     return fail('missing governorate (province)');
   if (!city || city.trim() === '')
     return fail('missing city');
+  // City must not be a bare number (e.g. "1") — that's not a real city name
+  if (/^\d+$/.test(city.trim()))
+    return fail('city is a number, not a valid city name');
 
   const combined = `${address1} ${address2}`;
 
