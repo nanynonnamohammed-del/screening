@@ -93,6 +93,9 @@ async function screenOrder(order) {
     }
   };
 
+  // If the order is already paid online, no deposit needed regardless of other checks
+  const isPaid = (order.financial_status || '').toLowerCase() === 'paid';
+
   // Resolve order GID (used for the tagsAdd mutation later)
   const orderGid = order.admin_graphql_api_id
                 || `gid://shopify/Order/${order.id}`;
@@ -116,7 +119,7 @@ async function screenOrder(order) {
       push(TAG.CALL_CONFIRM);
     } else if (rate === 'Low') {
       push(TAG.LOW_RATE);
-      push(TAG.DEPOSIT);       // Check 1 deposit
+      if (!isPaid) push(TAG.DEPOSIT);   // Check 1 deposit — skip if already paid
     }
     // rate === 'High' or null (new/unknown customer) → no action
   } else {
@@ -140,7 +143,7 @@ async function screenOrder(order) {
     } else {
       // Any previously cancelled order?
       const hasCancelled = prevOrders.some(o => o.cancelledAt !== null);
-      if (hasCancelled) {
+      if (hasCancelled && !isPaid) {
         console.log('[check2]  cancelled order found → Deposit');
         push(TAG.DEPOSIT);     // push() is safe — will not duplicate if Check 1 already added it
       }
