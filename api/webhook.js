@@ -271,16 +271,27 @@ async function getBostaAcceptanceRate(phone) {
 
     console.log(`[bosta] calling ${url}`);
 
-    const res = await fetchWithTimeout(url, {
-      method:  'GET',
-      headers: {
-        Authorization:  `Bearer ${BOSTA_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    }, 8000);
+    // Try different auth header formats until one works
+    const authFormats = [
+      { Authorization: `Bearer ${BOSTA_API_KEY}` },
+      { Authorization: `ApiKey ${BOSTA_API_KEY}` },
+      { 'x-api-key': BOSTA_API_KEY },
+      { Authorization: BOSTA_API_KEY },
+    ];
 
-    if (!res.ok) {
-      console.warn(`[bosta] API returned ${res.status} for phone ${normalizedPhone}`);
+    let res = null;
+    for (const headers of authFormats) {
+      const attempt = await fetchWithTimeout(url, {
+        method:  'GET',
+        headers: { 'Content-Type': 'application/json', ...headers },
+      }, 8000);
+      console.log(`[bosta] auth=${Object.keys(headers)[0]}  status=${attempt.status}`);
+      if (attempt.ok) { res = attempt; break; }
+      if (attempt.status !== 401) { res = attempt; break; } // non-401 error, stop trying
+    }
+
+    if (!res || !res.ok) {
+      console.warn(`[bosta] all auth formats failed for phone ${normalizedPhone}`);
       return null;
     }
 
