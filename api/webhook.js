@@ -226,7 +226,7 @@ function checkAddress(addr) {
   if (!hasBuilding) return fail('missing building number');
 
   // Street
-  const hasStreetKeyword = /شارع|street\b|st\b|طريق|road|كورنيش|مجاورة|حي\s|sector|block/i.test(combined);
+  const hasStreetKeyword = /شارع|street\b|st\b|طريق|road|كورنيش|مجاورة|حي\s|sector|block|متفرع/i.test(combined);
   // English address fallback: number + 4+ words likely has an embedded street name (e.g. "10 Ibn Kara Ahmed Saeed Abassya")
   const isEnglishAddr = !/[؀-ۿ]/.test(combined);
   const looksLikeEnglishStreet = isEnglishAddr && /[0-9]/.test(combined) && combined.trim().split(/\s+/).length >= 4;
