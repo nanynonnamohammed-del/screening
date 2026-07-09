@@ -29,7 +29,7 @@ const TAG = {
   NEW:          'New ✨',
   LOYAL:        'Loyal 👑',
   BAD_ADDRESS:  'Address 🔺',
-  CLEAR:        'Clear 👌🏻',
+  CLEAR:        'Clear 🟩',
 };
 
 // ─────────────────────────────────────────────────────────────────────
