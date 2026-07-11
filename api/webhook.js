@@ -211,7 +211,7 @@ function checkAddress(addr) {
   // ── Format B: compound + villa / unit ─────────────────────────
   // Check combined address AND city field — many compounds are written as the city (e.g. "Rehab", "Madinaty")
   const combinedWithCity = `${combined} ${city}`;
-  const hasCompound = /compound|كمبوند|كومبوند|كومباوند|تعاونيات|مرحلة|حي\s+\S|heights?|gardens?|village|residence|residences|زايد|zayed|sodic|eastown|westown|villette|rehab|مدينتي|مدينتى|مدينة|القطامية|الرحاب|مستقبل|سيتي|mayfair|سراي|الياسمين|النرجس|البنفسج|الزهور|الفل|القرنفل|بالم|بيراميدز|ميفير|ديار|سيليا|كناريا|دريم لاند|dreamland|التجمع|بيفرلي|beverly|وادي|الندى|الأندلس|ميدان|جرين|green|ليك|lake|ريفيرا|riviera|سنتر|center|بارك|park|مساكن/i
+  const hasCompound = /compound|كمبوند|كومبوند|كومباوند|تعاونيات|مرحلة|حي\s+\S|heights?|gardens?|village|residence|residences|زايد|zayed|sodic|eastown|westown|villette|rehab|مدينتي|مدينتى|مدينة|القطامية|الرحاب|مستقبل|سيتي|mayfair|سراي|الياسمين|النرجس|البنفسج|banafseg|الزهور|الفل|القرنفل|بالم|بيراميدز|ميفير|ديار|سيليا|كناريا|دريم لاند|dreamland|التجمع|بيفرلي|beverly|وادي|الندى|الأندلس|ميدان|جرين|green|ليك|lake|ريفيرا|riviera|سنتر|center|بارك|park|مساكن/i
     .test(combinedWithCity);
   const hasVillaOrUnit = /\bvilla\b|فيلا|ڤيلا|\bunit\b|وحدة|[0-9٠-٩]+/i.test(combined);
 
